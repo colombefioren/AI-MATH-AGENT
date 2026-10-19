@@ -21,7 +21,6 @@ def main() -> None:
         model=os.getenv("MODEL_NAME"),
         api_key=os.getenv("API_KEY"),
         base_url=os.getenv("BASE_URL"),
-        temperature=0,
     )
 
     agent = create_agent(model=llm, tools=[add_numbers])
