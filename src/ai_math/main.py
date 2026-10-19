@@ -1,13 +1,17 @@
 import os
 import re
-from operator import sub
 
+import wikipedia
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
+from langchain_community.tools import WikipediaQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper
 
 load_dotenv()
+
+wikipedia.set_user_agent(f"ai-math/0.1 ({os.getenv('WIKI_CONTACT')})")
 
 
 @tool
@@ -52,6 +56,11 @@ def divide_numbers(inputs: str) -> dict:
         result /= num
     return {"result": result}
 
+wiki = WikipediaQueryRun(
+    api_wrapper=WikipediaAPIWrapper()
+)
+
+print(wiki.invoke("What is tool calling?"))
 
 llm = ChatOpenAI(
     model=os.getenv("MODEL_NAME"),
