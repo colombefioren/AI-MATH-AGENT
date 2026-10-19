@@ -1,5 +1,6 @@
 import os
 import re
+from operator import sub
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
@@ -58,17 +59,28 @@ llm = ChatOpenAI(
     base_url=os.getenv("BASE_URL"),
 )
 
-agent = create_agent(model=llm, tools=[add_numbers])
+tools = [add_numbers, multiply_numbers, subtract_numbers, divide_numbers]
 
-response = agent.invoke(
-    {
-        "messages": [
-            (
-                "human",
-                "Add 10, 20, two and 30"
-            )
-        ]
-    }
+math_agent = create_agent(
+    model=llm,
+    tools=tools,
+    system_prompt="You are a helpful mathematical assistant that can perform various operations. Use the tolls precisely and explain your reasoning clearly.",
 )
 
+response = math_agent.invoke({"messages": [("human", "What is 25 divided by 4?")]})
+
 print(response["messages"][-1].content)
+
+response_2 = math_agent.invoke({"messages": [("human", "Subtract 100, 20, and 10.")]})
+
+print(response_2["messages"][-1].content)
+
+print("\n--- Testing MultiplyTool ---")
+response = math_agent.invoke({"messages": [("human", "Multiply 2, 3, and 4.")]})
+print("Agent Response:", response["messages"][-1].content)
+
+print("\n--- Testing DivideTool ---")
+response = math_agent.invoke(
+    {"messages": [("human", "Divide 100 by 5 and then by 2.")]}
+)
+print("Agent Response:", response["messages"][-1].content)
