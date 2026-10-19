@@ -6,6 +6,8 @@ from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
+load_dotenv()
+
 
 @tool
 def add_numbers(inputs: str) -> dict:
@@ -14,30 +16,59 @@ def add_numbers(inputs: str) -> dict:
     return {"result": sum(numbers)}
 
 
-def main() -> None:
-    load_dotenv()
-
-    llm = ChatOpenAI(
-        model=os.getenv("MODEL_NAME"),
-        api_key=os.getenv("API_KEY"),
-        base_url=os.getenv("BASE_URL"),
-    )
-
-    agent = create_agent(model=llm, tools=[add_numbers])
-
-    response = agent.invoke(
-        {
-            "messages": [
-                (
-                    "human",
-                    "In 2023, the US GDP was approximately $27.72 trillion, while Canada's was around $2.14 trillion and Mexico's was about $1.79 trillion what is the total.",
-                )
-            ]
-        }
-    )
-
-    print(response["messages"][-1].content)
+@tool
+def subtract_numbers(inputs: str) -> dict:
+    """Subtracts all subsequent numeric values from the first one found in the input string."""
+    numbers = [float(num) for num in re.findall(r"-?\d+(?:\.\d+)?", inputs)]
+    if not numbers:
+        return {"result": 0}
+    result = numbers[0]
+    for num in numbers[1:]:
+        result -= num
+    return {"result": result}
 
 
-if __name__ == "__main__":
-    main()
+@tool
+def multiply_numbers(inputs: str) -> dict:
+    """Multiplies all numeric values found in the input string."""
+    numbers = [float(num) for num in re.findall(r"-?\d+(?:\.\d+)?", inputs)]
+    result = 1
+    for num in numbers:
+        result *= num
+    return {"result": result}
+
+
+@tool
+def divide_numbers(inputs: str) -> dict:
+    """Divides the first numeric value by all subsequent values found in the input string."""
+    numbers = [float(num) for num in re.findall(r"-?\d+(?:\.\d+)?", inputs)]
+    if not numbers:
+        return {"result": 0}
+    result = numbers[0]
+    for num in numbers[1:]:
+        if num == 0:
+            return {"error": "Cannot divide by zero"}
+        result /= num
+    return {"result": result}
+
+
+llm = ChatOpenAI(
+    model=os.getenv("MODEL_NAME"),
+    api_key=os.getenv("API_KEY"),
+    base_url=os.getenv("BASE_URL"),
+)
+
+agent = create_agent(model=llm, tools=[add_numbers])
+
+response = agent.invoke(
+    {
+        "messages": [
+            (
+                "human",
+                "Add 10, 20, two and 30"
+            )
+        ]
+    }
+)
+
+print(response["messages"][-1].content)
