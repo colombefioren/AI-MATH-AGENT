@@ -7,7 +7,14 @@ authors = [
     { name = "colombefioren", email = "colomberakotonjanahary@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "langchain>=1.4.6",
+    "langchain-community>=0.4.2",
+    "langchain-openai>=1.7.2",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+    "wikipedia>=1.4.0",
+]
 
 [project.scripts]
 ai-math = "ai_math:main"
