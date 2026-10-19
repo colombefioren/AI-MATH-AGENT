@@ -6,13 +6,10 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from langchain_community.tools import WikipediaQueryRun
-from langchain_community.utilities import WikipediaAPIWrapper
 
 load_dotenv()
 
-wikipedia.set_user_agent(f"ai-math/0.1 ({os.getenv('WIKI_CONTACT')})")
-
+wikipedia.set_user_agent(f"ai-math/1.0 ({os.getenv("WIKI_CONTACT")})")
 
 @tool
 def add_numbers(inputs: str) -> dict:
@@ -56,11 +53,26 @@ def divide_numbers(inputs: str) -> dict:
         result /= num
     return {"result": result}
 
-wiki = WikipediaQueryRun(
-    api_wrapper=WikipediaAPIWrapper()
-)
+@tool
+def wikipedia_search(query: str) -> str:
+    """Search Wikipedia and return summaries of the top matching pages.
+    Use for general knowledge about people, places, concepts, or events."""
+    titles = wikipedia.search(query, results=3)
+    if not titles:
+        return "No Wikipedia results found."
 
-print(wiki.invoke("What is tool calling?"))
+    results = []
+    for title in titles:
+        try:
+            page = wikipedia.page(title, auto_suggest=False)
+            results.append(f"Page: {page.title}\nSummary: {page.summary}")
+        except (wikipedia.DisambiguationError, wikipedia.PageError):
+            continue
+
+    return "\n\n".join(results)[:4000] or "No usable Wikipedia results found."
+
+print(wikipedia_search.invoke("What is tool calling?"))
+
 
 llm = ChatOpenAI(
     model=os.getenv("MODEL_NAME"),
