@@ -80,28 +80,25 @@ llm = ChatOpenAI(
     base_url=os.getenv("BASE_URL"),
 )
 
-tools = [add_numbers, multiply_numbers, subtract_numbers, divide_numbers]
+tools = [add_numbers, multiply_numbers,wikipedia_search, subtract_numbers, divide_numbers]
 
-math_agent = create_agent(
+agent = create_agent(
     model=llm,
     tools=tools,
-    system_prompt="You are a helpful mathematical assistant that can perform various operations. Use the tolls precisely and explain your reasoning clearly.",
+    system_prompt="You are a helpful mathematical assistant that can perform various operations and look up information. Use the tolls precisely and explain your reasoning clearly.",
 )
 
-response = math_agent.invoke({"messages": [("human", "What is 25 divided by 4?")]})
+query = "What is the population of Canada? Multiply it by 0.75"
 
-print(response["messages"][-1].content)
+response = agent.invoke({"messages": [("human", query)]})
 
-response_2 = math_agent.invoke({"messages": [("human", "Subtract 100, 20, and 10.")]})
-
-print(response_2["messages"][-1].content)
-
-print("\n--- Testing MultiplyTool ---")
-response = math_agent.invoke({"messages": [("human", "Multiply 2, 3, and 4.")]})
-print("Agent Response:", response["messages"][-1].content)
-
-print("\n--- Testing DivideTool ---")
-response = math_agent.invoke(
-    {"messages": [("human", "Divide 100 by 5 and then by 2.")]}
-)
-print("Agent Response:", response["messages"][-1].content)
+print("\nMessage sequence:")
+for i, msg in enumerate(response["messages"]):
+    print(f"\n--- Message {i+1} ---")
+    print(f"Type: {type(msg).__name__}")
+    if hasattr(msg, 'content'):
+        print(f"Content: {msg.content}")
+    if hasattr(msg, 'name'):
+        print(f"Name: {msg.name}")
+    if hasattr(msg, 'tool_calls') and msg.tool_calls:
+        print(f"Tool calls: {msg.tool_calls}")
